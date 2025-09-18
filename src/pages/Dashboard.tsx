@@ -81,8 +81,13 @@ const Dashboard = () => {
     }
   };
 
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      navigate('/admin');
+    }
+  }, [user?.role, navigate]);
+
   if (user?.role === 'admin') {
-    navigate('/admin');
     return null;
   }
 

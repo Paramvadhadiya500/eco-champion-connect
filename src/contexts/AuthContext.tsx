@@ -40,16 +40,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // Simulate API call
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const foundUser = users.find((u: User) => u.email === email);
-    
-    if (foundUser) {
-      setUser(foundUser);
-      localStorage.setItem('currentUser', JSON.stringify(foundUser));
-      return true;
-    }
-    
     // Default admin account
     if (email === 'admin@waste.com' && password === 'admin123') {
       const adminUser: User = {
@@ -62,6 +52,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
       setUser(adminUser);
       localStorage.setItem('currentUser', JSON.stringify(adminUser));
+      return true;
+    }
+    
+    // Check registered users (password validation would be done here in real app)
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const foundUser = users.find((u: User) => u.email === email);
+    
+    if (foundUser) {
+      setUser(foundUser);
+      localStorage.setItem('currentUser', JSON.stringify(foundUser));
       return true;
     }
     
