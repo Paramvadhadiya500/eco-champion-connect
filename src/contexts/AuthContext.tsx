@@ -15,6 +15,7 @@ interface AuthContextType {
   logout: () => void;
   register: (name: string, email: string, password: string) => Promise<boolean>;
   updateCredits: (credits: number) => void;
+  addCredits: (credits: number, userId?: string) => void;
   addRedeemCode: (code: string) => void;
 }
 
@@ -114,6 +115,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const addCredits = (credits: number, userId?: string) => {
+    if (userId) {
+      // Add credits to specific user (admin function)
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const userIndex = users.findIndex((u: User) => u.id === userId);
+      if (userIndex !== -1) {
+        users[userIndex].credits = (users[userIndex].credits || 0) + credits;
+        localStorage.setItem('users', JSON.stringify(users));
+        
+        // Update current user if it's the same user
+        if (user && user.id === userId) {
+          const updatedUser = { ...user, credits: (user.credits || 0) + credits };
+          setUser(updatedUser);
+          localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+        }
+      }
+    } else if (user) {
+      // Add credits to current user
+      const updatedUser = { ...user, credits: (user.credits || 0) + credits };
+      setUser(updatedUser);
+      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+      
+      // Update user in users array
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const userIndex = users.findIndex((u: User) => u.id === user.id);
+      if (userIndex !== -1) {
+        users[userIndex] = updatedUser;
+        localStorage.setItem('users', JSON.stringify(users));
+      }
+    }
+  };
+
   const addRedeemCode = (code: string) => {
     if (user) {
       const updatedUser = { ...user, redeemCodes: [...user.redeemCodes, code] };
@@ -137,6 +170,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       logout,
       register,
       updateCredits,
+      addCredits,
       addRedeemCode
     }}>
       {children}
