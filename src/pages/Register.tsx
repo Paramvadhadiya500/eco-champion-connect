@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,14 +9,23 @@ import { useToast } from '@/hooks/use-toast';
 import { Recycle } from 'lucide-react';
 
 const Register = () => {
+  const [searchParams] = useSearchParams();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [registerType, setRegisterType] = useState<'user' | 'admin'>('user');
   const { register } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const type = searchParams.get('type');
+    if (type === 'admin') {
+      setRegisterType('admin');
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,13 +42,13 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const success = await register(name, email, password);
+      const success = await register(name, email, password, registerType);
       if (success) {
         toast({
           title: 'Account created!',
           description: 'Welcome to EcoWaste. You can now submit complaints.',
         });
-        navigate('/');
+        navigate(registerType === 'admin' ? '/admin' : '/');
       } else {
         toast({
           title: 'Registration failed',
@@ -67,8 +76,30 @@ const Register = () => {
           </div>
           <CardTitle className="text-2xl">Join EcoWaste</CardTitle>
           <CardDescription>
-            Create an account to start making a difference in waste management
+            Create your account to start making a difference
           </CardDescription>
+          
+          {/* Register Type Selection */}
+          <div className="flex gap-2 p-1 bg-muted rounded-lg">
+            <Button
+              type="button"
+              variant={registerType === 'user' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setRegisterType('user')}
+              className="flex-1"
+            >
+              User Account
+            </Button>
+            <Button
+              type="button"
+              variant={registerType === 'admin' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setRegisterType('admin')}
+              className="flex-1"
+            >
+              Admin Account
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -124,7 +155,7 @@ const Register = () => {
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               Already have an account?{' '}
-              <Link to="/login" className="text-primary hover:underline">
+              <Link to={`/login?type=${registerType}`} className="text-primary hover:underline">
                 Sign in
               </Link>
             </p>

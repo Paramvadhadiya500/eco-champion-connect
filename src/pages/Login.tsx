@@ -12,6 +12,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loginType, setLoginType] = useState<'user' | 'admin'>('user');
   const { login } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -21,13 +22,13 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const success = await login(email, password);
+      const success = await login(email, password, loginType);
       if (success) {
         toast({
           title: 'Welcome back!',
           description: 'You have successfully logged in.',
         });
-        navigate('/');
+        navigate(loginType === 'admin' ? '/admin' : '/');
       } else {
         toast({
           title: 'Login failed',
@@ -57,6 +58,28 @@ const Login = () => {
           <CardDescription>
             Sign in to manage waste complaints and contribute to a cleaner environment
           </CardDescription>
+          
+          {/* Login Type Selection */}
+          <div className="flex gap-2 p-1 bg-muted rounded-lg">
+            <Button
+              type="button"
+              variant={loginType === 'user' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setLoginType('user')}
+              className="flex-1"
+            >
+              User Login
+            </Button>
+            <Button
+              type="button"
+              variant={loginType === 'admin' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setLoginType('admin')}
+              className="flex-1"
+            >
+              Admin Login
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -90,17 +113,19 @@ const Login = () => {
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               Don't have an account?{' '}
-              <Link to="/register" className="text-primary hover:underline">
-                Sign up
+              <Link to={`/register?type=${loginType}`} className="text-primary hover:underline">
+                Sign up as {loginType}
               </Link>
             </p>
           </div>
 
-          <div className="mt-4 p-3 bg-muted rounded-md">
-            <p className="text-xs text-muted-foreground mb-2">Demo Accounts:</p>
-            <p className="text-xs">Admin: admin@waste.com / admin123</p>
-            <p className="text-xs">Or register as a new user</p>
-          </div>
+          {loginType === 'user' && (
+            <div className="mt-4 p-3 bg-muted rounded-md">
+              <p className="text-xs text-muted-foreground mb-2">Demo Accounts:</p>
+              <p className="text-xs">Admin: admin@waste.com / admin123</p>
+              <p className="text-xs">Or register as a new user</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

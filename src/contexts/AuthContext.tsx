@@ -11,9 +11,9 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string, userType?: 'user' | 'admin') => Promise<boolean>;
   logout: () => void;
-  register: (name: string, email: string, password: string) => Promise<boolean>;
+  register: (name: string, email: string, password: string, userType?: 'user' | 'admin') => Promise<boolean>;
   updateCredits: (credits: number) => void;
   addCredits: (credits: number, userId?: string) => void;
   addRedeemCode: (code: string) => void;
@@ -40,9 +40,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string, userType: 'user' | 'admin' = 'user'): Promise<boolean> => {
     // Default admin account
-    if (email === 'admin@waste.com' && password === 'admin123') {
+    if (email === 'admin@waste.com' && password === 'admin123' && userType === 'admin') {
       const adminUser: User = {
         id: 'admin-1',
         name: 'Admin User',
@@ -56,9 +56,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return true;
     }
     
-    // Check registered users (password validation would be done here in real app)
+    // Check registered users
     const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const foundUser = users.find((u: User) => u.email === email);
+    const foundUser = users.find((u: User) => u.email === email && u.role === userType);
     
     if (foundUser) {
       setUser(foundUser);
@@ -69,7 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return false;
   };
 
-  const register = async (name: string, email: string, password: string): Promise<boolean> => {
+  const register = async (name: string, email: string, password: string, userType: 'user' | 'admin' = 'user'): Promise<boolean> => {
     // Simulate API call
     const users = JSON.parse(localStorage.getItem('users') || '[]');
     const existingUser = users.find((u: User) => u.email === email);
@@ -82,7 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       id: Date.now().toString(),
       name,
       email,
-      role: 'user',
+      role: userType,
       credits: 0,
       redeemCodes: []
     };
